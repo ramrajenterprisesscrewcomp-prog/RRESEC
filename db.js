@@ -125,6 +125,7 @@ function getSettings() {
   // without needing to re-enter it in Settings each time.
   if (!out.smtp_user && process.env.GMAIL_SENDER) out.smtp_user = process.env.GMAIL_SENDER;
   if (!out.smtp_pass && process.env.GMAIL_APP_PASSWORD) out.smtp_pass = process.env.GMAIL_APP_PASSWORD;
+  if (!out.gsheet_id && process.env.GSHEET_ID) out.gsheet_id = process.env.GSHEET_ID;
   return out;
 }
 

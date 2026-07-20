@@ -3,3 +3,6 @@ data/
 *.log
 RRE-SEC-deploy.zip
 .git/
+.env
+.env.*
+!.env.example

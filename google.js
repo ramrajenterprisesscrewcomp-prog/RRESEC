@@ -10,7 +10,17 @@ const tzu = require('./tz');
 const KEY_PATH = path.join(__dirname, 'data', 'google-key.json');
 let cachedToken = null;
 
+// On a host with no local data/ folder (e.g. Railway), the key is supplied via
+// the GOOGLE_SERVICE_ACCOUNT_JSON env var instead of the file.
 function loadKey() {
+  if (process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
+    try {
+      const k = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
+      if (k.client_email && k.private_key) return k;
+    } catch {
+      // fall through to the file
+    }
+  }
   try {
     const k = JSON.parse(fs.readFileSync(KEY_PATH, 'utf8'));
     return k.client_email && k.private_key ? k : null;

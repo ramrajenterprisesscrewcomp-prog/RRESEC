@@ -1,4 +1,8 @@
 node_modules/
 data/
+.claude/
 *.log
 RRE-SEC-deploy.zip
+.env
+.env.*
+!.env.example

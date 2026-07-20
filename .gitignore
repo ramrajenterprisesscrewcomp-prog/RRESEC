@@ -6,3 +6,6 @@ RRE-SEC-deploy.zip
 .env
 .env.*
 !.env.example
+
+.vercel
+.env*

@@ -10,6 +10,16 @@ const tzu = require('./tz');
 const cal = require('./cal');
 const gsheet = require('./google');
 
+// On a completely empty database (e.g. a fresh Vercel cold start, where /tmp
+// gets wiped), auto-create the admin account from ADMIN_EMAIL/ADMIN_PASSWORD
+// so it doesn't need to be re-registered by hand every time. Only ever runs
+// when there are zero users; an existing admin's password is left untouched.
+if (db.countUsers() === 0 && process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD) {
+  db.createUser(
+    'Admin', process.env.ADMIN_EMAIL, bcrypt.hashSync(process.env.ADMIN_PASSWORD, 10), 'admin', tzu.DEFAULT_TZ
+  );
+}
+
 const app = express();
 const PORT = process.env.PORT || 3010;
 app.set('trust proxy', 1); // correct client IPs/cookies when behind a reverse proxy (VPS)

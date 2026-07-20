@@ -408,25 +408,33 @@ app.post('/users/:id/toggle', requireAdmin, (req, res) => {
 
 // ---------- start ----------
 
-const HTTPS_PORT = process.env.HTTPS_PORT || 3443;
+// On Vercel the app runs as a serverless function per request — there is no
+// long-running process, so app.listen() and the reminder scheduler's
+// setInterval loop (notifier.startScheduler) do not apply there. Vercel
+// imports this file as a module (see api/index.js) instead of running it
+// directly, so this block is skipped in that environment.
+if (!process.env.VERCEL) {
+  const HTTPS_PORT = process.env.HTTPS_PORT || 3443;
 
-app.listen(PORT, () => {
-  console.log('');
-  console.log('  Appointment Secretary is running.');
-  console.log(`  Open in your browser:  http://localhost:${PORT}`);
-  console.log(`  From phones on the same Wi-Fi, use this PC's IP, e.g. http://192.168.x.x:${PORT}`);
-  console.log('');
-  notifier.startScheduler();
-});
+  app.listen(PORT, () => {
+    console.log('');
+    console.log('  Appointment Secretary is running.');
+    console.log(`  Open in your browser:  http://localhost:${PORT}`);
+    console.log(`  From phones on the same Wi-Fi, use this PC's IP, e.g. http://192.168.x.x:${PORT}`);
+    console.log('');
+    notifier.startScheduler();
+  });
 
-// HTTPS (needed for the location feature on phones — browsers block
-// geolocation on plain http except localhost). Cert is self-signed;
-// phones show a one-time warning that must be accepted.
-const pfxPath = path.join(__dirname, 'data', 'cert.pfx');
-if (fs.existsSync(pfxPath)) {
-  https
-    .createServer({ pfx: fs.readFileSync(pfxPath), passphrase: 'secretary' }, app)
-    .listen(HTTPS_PORT, () => {
-      console.log(`  HTTPS (for location on phones):  https://192.168.x.x:${HTTPS_PORT}`);
-    });
+  // Self-signed HTTPS for LAN use (phones need a secure origin for some
+  // browser features). Cert is self-signed; phones show a one-time warning.
+  const pfxPath = path.join(__dirname, 'data', 'cert.pfx');
+  if (fs.existsSync(pfxPath)) {
+    https
+      .createServer({ pfx: fs.readFileSync(pfxPath), passphrase: 'secretary' }, app)
+      .listen(HTTPS_PORT, () => {
+        console.log(`  HTTPS:  https://192.168.x.x:${HTTPS_PORT}`);
+      });
+  }
 }
+
+module.exports = app;

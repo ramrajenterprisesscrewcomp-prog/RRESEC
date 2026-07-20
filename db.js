@@ -3,7 +3,11 @@ const path = require('path');
 const crypto = require('crypto');
 const { DatabaseSync } = require('node:sqlite');
 
-const DATA_DIR = path.join(__dirname, 'data');
+// On Vercel the deployed code directory is read-only (only /tmp is writable),
+// and /tmp is wiped between cold starts — so data does not persist there.
+// This just keeps the app from crashing on read-only hosts; it is not a fix
+// for durable storage.
+const DATA_DIR = process.env.VERCEL ? '/tmp/data' : path.join(__dirname, 'data');
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 
 const db = new DatabaseSync(path.join(DATA_DIR, 'app.db'));

@@ -28,6 +28,7 @@ app.use(
 );
 
 app.use((req, res, next) => {
+  res.locals.currentPath = req.path;
   res.locals.user = req.session.userId ? db.getUserById(req.session.userId) : null;
   if (res.locals.user && !res.locals.user.active) {
     req.session.destroy(() => {});

@@ -27,6 +27,70 @@
     <p><a href="/appointments/new">Create the first one</a> — reminders are scheduled automatically.</p>
   </div>
 <% } else { %>
+
+<div class="appt-cards">
+  <% for (const a of appointments) { %>
+    <% const ch = JSON.parse(a.channels || '[]'); %>
+    <div class="appt-card <%= a.status === 'cancelled' ? 'cancelled' : '' %>">
+      <div class="appt-card-when">
+        <span class="appt-card-date"><%= fmtDate(a.start_ms) %></span>
+        <span class="appt-card-time"><%= fmtTime(a.start_ms) %></span>
+      </div>
+      <% if (a.timezone && a.timezone !== viewerTz) { %>
+        <div class="muted small-text"><%= wallTime(a.start_ms, a.timezone) %> in <%= a.timezone %></div>
+      <% } %>
+      <div class="appt-card-title">
+        <% if (a.title) { %><strong><%= a.title %></strong><br><% } %>
+        <strong><%= a.customer_name %></strong>
+        <span class="tag"><%= a.mode === 'online' ? '💻 Online' : '🤝 In-person' %></span>
+      </div>
+      <% if (a.meet_person || a.meet_person_phone) { %>
+        <div class="muted">👤 Meet: <%= [a.meet_person, a.meet_person_phone].filter(Boolean).join(' · ') %></div>
+      <% } %>
+      <% if (a.destination) { %><div class="muted">🧭 <%= a.destination %></div><% } %>
+      <% if (a.notes) { %><div class="muted"><%= a.notes %></div><% } %>
+      <% if (a.customer_phone || a.customer_email) { %>
+        <div class="muted">
+          <% if (a.customer_phone) { %><%= a.customer_phone %><% } %>
+          <% if (a.customer_phone && a.customer_email) { %> · <% } %>
+          <% if (a.customer_email) { %><%= a.customer_email %><% } %>
+        </div>
+      <% } %>
+      <% if (scopeAll) { %><div class="muted small-text">Booked by <%= a.owner_name %></div><% } %>
+      <div class="appt-card-status">
+        <% if (ch.includes('email')) { %><span class="tag">✉️ email</span><% } %>
+        <% if (ch.includes('whatsapp')) { %><span class="tag">🟢 WhatsApp</span><% } %>
+        <% if (ch.includes('sms')) { %><span class="tag">💬 SMS</span><% } %>
+        <% if (a.status === 'cancelled') { %>
+          <span class="muted small-text">cancelled</span>
+        <% } else if (a.next_due_ms) { %>
+          <span class="muted small-text">next: <%= fmtDateTime(a.next_due_ms) %></span>
+        <% } else if (a.sent_count > 0) { %>
+          <span class="muted small-text"><%= a.sent_count %> sent</span>
+        <% } else { %>
+          <span class="muted small-text">none pending</span>
+        <% } %>
+      </div>
+      <div class="appt-card-actions">
+        <a class="button small" target="_blank" title="Add to Google Calendar" href="<%= gcalUrl(a) %>">📅 GCal</a>
+        <a class="button small" title="Download for Outlook / Apple Calendar" href="/appointments/<%= a.id %>/ics">.ics</a>
+        <a class="button small" href="/appointments/<%= a.id %>/edit">Edit</a>
+        <% if (a.status === 'active') { %>
+          <form method="post" action="/appointments/<%= a.id %>/cancel" class="inline"
+                onsubmit="return confirm('Cancel this appointment? Reminders will stop.')">
+            <button class="button small danger" type="submit">Cancel</button>
+          </form>
+        <% } else { %>
+          <form method="post" action="/appointments/<%= a.id %>/delete" class="inline"
+                onsubmit="return confirm('Delete permanently?')">
+            <button class="button small danger" type="submit">Delete</button>
+          </form>
+        <% } %>
+      </div>
+    </div>
+  <% } %>
+</div>
+
 <div class="table-wrap">
 <table>
   <thead>

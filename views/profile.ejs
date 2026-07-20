@@ -1,6 +1,12 @@
 <%- include('partials/header') %>
 <div class="card form-card">
   <h1>My profile</h1>
+  <% if (user.role === 'admin') { %>
+    <div class="row-form admin-links">
+      <a class="button" href="/settings">⚙️ Settings</a>
+      <a class="button" href="/users">👥 Users</a>
+    </div>
+  <% } %>
   <form method="post" action="/profile">
     <label>My time zone (all dates and times you see are shown in this zone)
       <select name="timezone">
@@ -30,6 +36,13 @@
       <a class="button" href="/">Back</a>
     </div>
   </form>
+
+  <div class="mobile-only profile-mobile-actions">
+    <button class="button notif-toggle" type="button">🔔 Enable alerts</button>
+    <form method="post" action="/logout" class="inline">
+      <button class="button danger" type="submit">Log out</button>
+    </form>
+  </div>
 </div>
 <script>
   (function () {

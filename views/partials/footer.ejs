@@ -1,9 +1,28 @@
 </main>
 <% if (user) { %>
+<nav class="tabbar">
+  <a href="/" class="tab <%= currentPath === '/' ? 'on' : '' %>">
+    <span class="tab-icon">🏠</span><span class="tab-label">Home</span>
+  </a>
+  <a href="/logs" class="tab <%= currentPath === '/logs' ? 'on' : '' %>">
+    <span class="tab-icon">🕘</span><span class="tab-label">Log</span>
+  </a>
+  <a href="/appointments/new" class="tab tab-accent">
+    <span class="tab-accent-circle">+</span>
+  </a>
+  <% if (user.role === 'admin') { %>
+    <a href="/settings" class="tab <%= currentPath === '/settings' ? 'on' : '' %>">
+      <span class="tab-icon">⚙️</span><span class="tab-label">Settings</span>
+    </a>
+  <% } %>
+  <a href="/profile" class="tab <%= currentPath === '/profile' ? 'on' : '' %>">
+    <span class="tab-icon">👤</span><span class="tab-label">Profile</span>
+  </a>
+</nav>
 <script>
   (function () {
     if (!('Notification' in window)) return;
-    var btn = document.getElementById('notifBtn');
+    var btns = document.querySelectorAll('.notif-toggle');
     var KEY = 'notifiedAppts';
 
     if ('serviceWorker' in navigator && window.isSecureContext) {
@@ -24,10 +43,11 @@
     }
 
     function refreshBtn() {
-      if (btn) btn.textContent = Notification.permission === 'granted' ? '🔔 On' : '🔔 Enable alerts';
+      var label = Notification.permission === 'granted' ? '🔔 On' : '🔔 Enable alerts';
+      btns.forEach(function (btn) { btn.textContent = label; });
     }
 
-    if (btn) {
+    btns.forEach(function (btn) {
       btn.onclick = function () {
         if (Notification.permission === 'granted') {
           show('Alerts are on', 'You will get an alert 30 minutes before your appointments while the app is open.');
@@ -39,7 +59,7 @@
         }
         Notification.requestPermission().then(refreshBtn);
       };
-    }
+    });
 
     function poll() {
       if (Notification.permission !== 'granted') return;

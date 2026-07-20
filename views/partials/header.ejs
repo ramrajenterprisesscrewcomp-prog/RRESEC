@@ -2,15 +2,19 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title><%= title %> · Appointment Secretary</title>
 <link rel="stylesheet" href="/style.css">
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" type="image/png" href="/icon-192.png">
 <link rel="apple-touch-icon" href="/icon-192.png">
 <meta name="theme-color" content="#1e1b4b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Secretary">
 </head>
-<body>
+<body class="<%= user ? 'has-tabbar' : '' %>">
 <% if (user) { %>
 <nav class="topnav">
   <span class="brand">📅 Secretary</span>
@@ -22,7 +26,7 @@
     <a href="/users">Users</a>
   <% } %>
   <span class="spacer"></span>
-  <button class="link" id="notifBtn" type="button" title="Alerts 30 minutes before your appointments">🔔</button>
+  <button class="link notif-toggle" type="button" title="Alerts 30 minutes before your appointments">🔔</button>
   <a href="/profile" class="who"><%= user.name %><% if (user.role === 'admin') { %> (admin)<% } %></a>
   <form method="post" action="/logout" class="inline"><button class="link" type="submit">Log out</button></form>
 </nav>

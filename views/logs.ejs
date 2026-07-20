@@ -12,12 +12,12 @@
   <tbody>
   <% for (const l of logs) { %>
     <tr>
-      <td><%= fmtDateTime(l.created_ms) %></td>
-      <td><strong><%= l.customer_name %></strong><br><span class="muted">appt: <%= fmtDateTime(l.start_ms) %></span></td>
-      <td><%= l.channel %></td>
-      <td class="muted"><%= l.recipient %></td>
-      <td><span class="tag <%= l.status === 'sent' ? 'ok' : 'bad' %>"><%= l.status %></span></td>
-      <td class="muted small-text"><%= l.error %></td>
+      <td data-label="Sent at"><%= fmtDateTime(l.created_ms) %></td>
+      <td data-label="Customer"><strong><%= l.customer_name %></strong><br><span class="muted">appt: <%= fmtDateTime(l.start_ms) %></span></td>
+      <td data-label="Channel"><%= l.channel %></td>
+      <td data-label="To" class="muted"><%= l.recipient %></td>
+      <td data-label="Status"><span class="tag <%= l.status === 'sent' ? 'ok' : 'bad' %>"><%= l.status %></span></td>
+      <td data-label="Details" class="muted small-text"><%= l.error %></td>
     </tr>
   <% } %>
   </tbody>

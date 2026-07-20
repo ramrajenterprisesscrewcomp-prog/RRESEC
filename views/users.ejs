@@ -9,11 +9,11 @@
   <tbody>
   <% for (const u of users) { %>
     <tr>
-      <td><strong><%= u.name %></strong></td>
-      <td class="muted"><%= u.email %></td>
-      <td><%= u.role %></td>
-      <td><span class="tag <%= u.active ? 'ok' : 'bad' %>"><%= u.active ? 'active' : 'deactivated' %></span></td>
-      <td>
+      <td data-label="Name"><strong><%= u.name %></strong></td>
+      <td data-label="Email" class="muted"><%= u.email %></td>
+      <td data-label="Role"><%= u.role %></td>
+      <td data-label="Status"><span class="tag <%= u.active ? 'ok' : 'bad' %>"><%= u.active ? 'active' : 'deactivated' %></span></td>
+      <td data-label="">
         <% if (u.id !== user.id) { %>
           <form method="post" action="/users/<%= u.id %>/toggle" class="inline">
             <button class="button small <%= u.active ? 'danger' : '' %>" type="submit">

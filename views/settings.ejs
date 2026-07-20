@@ -1,0 +1,148 @@
+<%- include('partials/header') %>
+<h1>Settings</h1>
+
+<form method="post" action="/settings">
+  <div class="card">
+    <h2>General</h2>
+    <div class="row">
+      <label>Business name
+        <input type="text" name="business_name" value="<%= settings.business_name %>">
+      </label>
+      <label>Default country code (for 10-digit phone numbers)
+        <input type="text" name="default_country_code" value="<%= settings.default_country_code %>">
+      </label>
+    </div>
+    <label>Reminder message template
+      <textarea name="message_template" rows="3"><%= settings.message_template %></textarea>
+    </label>
+    <p class="hint">Placeholders: <code>{customer}</code> <code>{business}</code> <code>{date}</code> <code>{time}</code> <code>{notes}</code></p>
+  </div>
+
+  <div class="card">
+    <h2>✉️ Email (SMTP) — works free with Gmail</h2>
+    <p class="hint">For Gmail: keep host <code>smtp.gmail.com</code> and port <code>587</code>, enter your Gmail address,
+      and for the password use an <strong>App Password</strong> (Google Account → Security → 2-Step Verification → App passwords),
+      not your normal password.</p>
+    <div class="row">
+      <label>SMTP host
+        <input type="text" name="smtp_host" value="<%= settings.smtp_host %>">
+      </label>
+      <label>Port
+        <input type="text" name="smtp_port" value="<%= settings.smtp_port %>">
+      </label>
+    </div>
+    <div class="row">
+      <label>Email address (login)
+        <input type="text" name="smtp_user" value="<%= settings.smtp_user %>" placeholder="yourbusiness@gmail.com">
+      </label>
+      <label>App password
+        <input type="password" name="smtp_pass" value="<%= settings.smtp_pass %>">
+      </label>
+    </div>
+    <label>Sender name shown to customers
+      <input type="text" name="smtp_from_name" value="<%= settings.smtp_from_name %>" placeholder="<%= settings.business_name %>">
+    </label>
+  </div>
+
+  <div class="card">
+    <h2>🟢 WhatsApp</h2>
+    <label>Provider
+      <select name="wa_provider">
+        <option value="disabled" <%= settings.wa_provider === 'disabled' ? 'selected' : '' %>>Disabled (not set up yet)</option>
+        <option value="meta" <%= settings.wa_provider === 'meta' ? 'selected' : '' %>>Meta WhatsApp Cloud API</option>
+        <option value="twilio" <%= settings.wa_provider === 'twilio' ? 'selected' : '' %>>Twilio</option>
+      </select>
+    </label>
+    <div class="row">
+      <label>Meta: Phone Number ID
+        <input type="text" name="wa_meta_phone_id" value="<%= settings.wa_meta_phone_id %>">
+      </label>
+      <label>Meta: Access token
+        <input type="password" name="wa_meta_token" value="<%= settings.wa_meta_token %>">
+      </label>
+    </div>
+    <p class="hint">Note: Meta only delivers free-text messages to customers who wrote to you in the last 24 hours;
+      otherwise an approved message template is required. See README for setup steps.</p>
+  </div>
+
+  <div class="card">
+    <h2>💬 SMS</h2>
+    <label>Provider
+      <select name="sms_provider">
+        <option value="disabled" <%= settings.sms_provider === 'disabled' ? 'selected' : '' %>>Disabled (not set up yet)</option>
+        <option value="twilio" <%= settings.sms_provider === 'twilio' ? 'selected' : '' %>>Twilio</option>
+        <option value="msg91" <%= settings.sms_provider === 'msg91' ? 'selected' : '' %>>MSG91 (India, needs DLT)</option>
+      </select>
+    </label>
+    <div class="row">
+      <label>MSG91: Auth key
+        <input type="password" name="msg91_authkey" value="<%= settings.msg91_authkey %>">
+      </label>
+      <label>MSG91: Sender ID
+        <input type="text" name="msg91_sender" value="<%= settings.msg91_sender %>">
+      </label>
+    </div>
+    <label>MSG91: DLT Template / Flow ID
+      <input type="text" name="msg91_template_id" value="<%= settings.msg91_template_id %>">
+    </label>
+  </div>
+
+  <div class="card">
+    <h2>Twilio account (used if Twilio is chosen above for WhatsApp or SMS)</h2>
+    <div class="row">
+      <label>Account SID
+        <input type="text" name="twilio_sid" value="<%= settings.twilio_sid %>">
+      </label>
+      <label>Auth token
+        <input type="password" name="twilio_token" value="<%= settings.twilio_token %>">
+      </label>
+    </div>
+    <div class="row">
+      <label>WhatsApp sender number (e.g. +14155238886)
+        <input type="text" name="twilio_wa_from" value="<%= settings.twilio_wa_from %>">
+      </label>
+      <label>SMS sender number
+        <input type="text" name="twilio_sms_from" value="<%= settings.twilio_sms_from %>">
+      </label>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📊 Google Sheet sync</h2>
+    <p class="hint">The full appointment list is automatically written to this Google Sheet every time
+      an appointment is added, changed or cancelled.</p>
+    <label>Google Sheet ID (the long code in the sheet's web address)
+      <input type="text" name="gsheet_id" value="<%= settings.gsheet_id %>">
+    </label>
+    <% if (gsheetStatus.keyPresent) { %>
+      <p class="hint">✅ Key file found — connected as <code><%= gsheetStatus.email %></code>.
+        Make sure the Sheet is shared with this email as <strong>Editor</strong>.</p>
+    <% } else { %>
+      <p class="hint">⚠️ <strong>Key file missing.</strong> In Google Cloud Console →
+        IAM &amp; Admin → Service Accounts → your account → <strong>Keys → Add key → Create new key → JSON</strong>.
+        Save the downloaded file as <code>data\google-key.json</code> in the app folder, and share the
+        Sheet with the service account email as Editor.</p>
+    <% } %>
+  </div>
+
+  <div class="form-actions">
+    <button type="submit" class="primary">Save all settings</button>
+  </div>
+</form>
+
+<div class="card">
+  <h2>Sync Google Sheet now</h2>
+  <form method="post" action="/settings/sync-sheet">
+    <button type="submit" class="button">Sync all appointments to the Sheet</button>
+  </form>
+</div>
+
+<div class="card">
+  <h2>Test email sending</h2>
+  <form method="post" action="/settings/test-email" class="row-form">
+    <input type="email" name="test_to" placeholder="<%= user.email %>">
+    <button type="submit" class="button">Send test email</button>
+  </form>
+  <p class="hint">Save settings first, then send a test. If it fails, the error is shown at the top of the page.</p>
+</div>
+<%- include('partials/footer') %>

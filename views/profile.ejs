@@ -1,0 +1,73 @@
+<%- include('partials/header') %>
+<div class="card form-card">
+  <h1>My profile</h1>
+  <form method="post" action="/profile">
+    <label>My time zone (all dates and times you see are shown in this zone)
+      <select name="timezone">
+        <% for (const z of timezones) { %>
+          <option value="<%= z.value %>" <%= z.value === user.timezone ? 'selected' : '' %>><%= z.label %></option>
+        <% } %>
+      </select>
+    </label>
+
+    <fieldset>
+      <legend>Favourite time zones</legend>
+      <p class="hint">Quick picks shown at the top of the time zone list when you book an appointment —
+        useful for customers in other countries.</p>
+      <div class="favlist" id="favlist"></div>
+      <div class="row-form">
+        <input list="allzones" id="favinput" placeholder="Type to search, e.g. Europe/London">
+        <datalist id="allzones">
+          <% for (const z of timezones) { %><option value="<%= z.value %>"><%= z.label %></option><% } %>
+        </datalist>
+        <button type="button" class="button" id="favadd">Add</button>
+      </div>
+      <input type="hidden" name="fav_timezones" id="favhidden" value="<%= favZones.join(',') %>">
+    </fieldset>
+
+    <div class="form-actions">
+      <button type="submit" class="primary">Save</button>
+      <a class="button" href="/">Back</a>
+    </div>
+  </form>
+</div>
+<script>
+  (function () {
+    var hidden = document.getElementById('favhidden');
+    var list = document.getElementById('favlist');
+    var input = document.getElementById('favinput');
+    var valid = new Set(Array.from(document.querySelectorAll('#allzones option')).map(function (o) { return o.value; }));
+    var favs = hidden.value ? hidden.value.split(',').filter(Boolean) : [];
+
+    function render() {
+      hidden.value = favs.join(',');
+      list.innerHTML = '';
+      if (favs.length === 0) {
+        list.innerHTML = '<span class="muted">No favourites yet.</span>';
+        return;
+      }
+      favs.forEach(function (z) {
+        var tag = document.createElement('span');
+        tag.className = 'tag';
+        tag.textContent = z + ' ';
+        var x = document.createElement('button');
+        x.type = 'button';
+        x.textContent = '×';
+        x.title = 'Remove';
+        x.onclick = function () { favs = favs.filter(function (f) { return f !== z; }); render(); };
+        tag.appendChild(x);
+        list.appendChild(tag);
+      });
+    }
+
+    document.getElementById('favadd').onclick = function () {
+      var z = input.value.trim();
+      if (!valid.has(z)) { input.value = ''; input.placeholder = 'Pick a zone from the list'; return; }
+      if (favs.indexOf(z) === -1) favs.push(z);
+      input.value = '';
+      render();
+    };
+    render();
+  })();
+</script>
+<%- include('partials/footer') %>

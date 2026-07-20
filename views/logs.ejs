@@ -1,0 +1,27 @@
+<%- include('partials/header') %>
+<h1>Reminder log</h1>
+<p class="hint">Every reminder the app tried to send, newest first<%= isAdmin ? ' (all users)' : '' %>.</p>
+<% if (logs.length === 0) { %>
+  <div class="card empty"><p>Nothing sent yet. Reminders appear here once they go out.</p></div>
+<% } else { %>
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr><th>Sent at</th><th>Customer</th><th>Channel</th><th>To</th><th>Status</th><th>Details</th></tr>
+  </thead>
+  <tbody>
+  <% for (const l of logs) { %>
+    <tr>
+      <td><%= fmtDateTime(l.created_ms) %></td>
+      <td><strong><%= l.customer_name %></strong><br><span class="muted">appt: <%= fmtDateTime(l.start_ms) %></span></td>
+      <td><%= l.channel %></td>
+      <td class="muted"><%= l.recipient %></td>
+      <td><span class="tag <%= l.status === 'sent' ? 'ok' : 'bad' %>"><%= l.status %></span></td>
+      <td class="muted small-text"><%= l.error %></td>
+    </tr>
+  <% } %>
+  </tbody>
+</table>
+</div>
+<% } %>
+<%- include('partials/footer') %>

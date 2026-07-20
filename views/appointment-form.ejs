@@ -1,0 +1,127 @@
+<%- include('partials/header') %>
+<%
+  const isEdit = !!appt;
+  const chosenChannels = isEdit ? JSON.parse(appt.channels || '[]') : ['email'];
+  const chosenOffsets = isEdit ? JSON.parse(appt.offsets || '[]') : [1440, 60];
+  const chosenTz = isEdit ? appt.timezone : viewerTz;
+  const quickZones = [viewerTz].concat(favZones.filter(z => z !== viewerTz));
+  let dateVal = '', timeVal = '';
+  if (isEdit) {
+    dateVal = wallDate(appt.start_ms, chosenTz);
+    timeVal = wallTime(appt.start_ms, chosenTz);
+  }
+%>
+<div class="card form-card">
+  <h1><%= isEdit ? 'Edit appointment' : 'New appointment' %></h1>
+  <form method="post" action="<%= isEdit ? '/appointments/' + appt.id : '/appointments' %>">
+    <% const chosenMode = isEdit ? (appt.mode || 'in_person') : 'in_person'; %>
+    <label>Title (what the meeting is about)
+      <input type="text" name="title" placeholder="e.g. Sales meeting / Site visit"
+             value="<%= isEdit ? (appt.title || '') : '' %>">
+    </label>
+    <fieldset>
+      <legend>Meeting type</legend>
+      <label class="check"><input type="radio" name="mode" value="in_person"
+        <%= chosenMode === 'in_person' ? 'checked' : '' %>> 🤝 In-person</label>
+      <label class="check"><input type="radio" name="mode" value="online"
+        <%= chosenMode === 'online' ? 'checked' : '' %>> 💻 Online</label>
+    </fieldset>
+    <label>Customer name *
+      <input type="text" name="customer_name" required value="<%= isEdit ? appt.customer_name : '' %>">
+    </label>
+    <div class="row">
+      <label>Person to meet
+        <input type="text" name="meet_person" placeholder="e.g. Mr. Sharma (Purchase Head)"
+               value="<%= isEdit ? (appt.meet_person || '') : '' %>">
+      </label>
+      <label>Person's phone number
+        <input type="tel" name="meet_person_phone" placeholder="98765 43210"
+               value="<%= isEdit ? (appt.meet_person_phone || '') : '' %>">
+      </label>
+    </div>
+    <label>Destination
+      <input type="text" name="destination" placeholder="e.g. Client office, Pune / Google Meet"
+             value="<%= isEdit ? (appt.destination || '') : '' %>">
+    </label>
+    <div class="row">
+      <label>Phone (for WhatsApp / SMS)
+        <input type="tel" name="customer_phone" placeholder="98765 43210"
+               value="<%= isEdit ? appt.customer_phone : '' %>">
+      </label>
+      <label>Email
+        <input type="email" name="customer_email" placeholder="customer@example.com"
+               value="<%= isEdit ? appt.customer_email : '' %>">
+      </label>
+    </div>
+    <p class="hint" id="ccHint">Local phone numbers (customer and person to meet) get country code
+      +<%= callingCode(chosenTz) || settings.default_country_code %> automatically (follows the appointment time zone below).</p>
+    <div class="row">
+      <label>Date *
+        <input type="date" name="date" required value="<%= dateVal %>">
+      </label>
+      <label>Time *
+        <input type="time" name="time" required value="<%= timeVal %>">
+      </label>
+    </div>
+    <label>Time zone of this appointment
+      <select name="timezone">
+        <optgroup label="Quick picks">
+          <% for (const z of quickZones) { %>
+            <option value="<%= z %>" data-cc="<%= callingCode(z) || '' %>" <%= z === chosenTz ? 'selected' : '' %>><%= z %><%= z === viewerTz ? ' (my zone)' : '' %></option>
+          <% } %>
+        </optgroup>
+        <optgroup label="All time zones">
+          <% for (const z of timezones) { %>
+            <option value="<%= z.value %>" data-cc="<%= callingCode(z.value) || '' %>" <%= z.value === chosenTz && !quickZones.includes(z.value) ? 'selected' : '' %>><%= z.label %></option>
+          <% } %>
+        </optgroup>
+      </select>
+    </label>
+    <p class="hint">The customer's reminder shows the time in this zone. Add favourite zones in
+      <a href="/profile">your profile</a>.</p>
+    <label>Notes (added to the reminder message)
+      <textarea name="notes" rows="2"><%= isEdit ? appt.notes : '' %></textarea>
+    </label>
+
+    <fieldset>
+      <legend>Send reminder by</legend>
+      <label class="check"><input type="checkbox" name="channels" value="email"
+        <%= chosenChannels.includes('email') ? 'checked' : '' %>> ✉️ Email</label>
+      <label class="check"><input type="checkbox" name="channels" value="whatsapp"
+        <%= chosenChannels.includes('whatsapp') ? 'checked' : '' %>> 🟢 WhatsApp
+        <% if (settings.wa_provider === 'disabled') { %><span class="muted">(not set up yet — will show as failed)</span><% } %></label>
+      <label class="check"><input type="checkbox" name="channels" value="sms"
+        <%= chosenChannels.includes('sms') ? 'checked' : '' %>> 💬 SMS
+        <% if (settings.sms_provider === 'disabled') { %><span class="muted">(not set up yet — will show as failed)</span><% } %></label>
+    </fieldset>
+
+    <fieldset>
+      <legend>When to remind</legend>
+      <% for (const o of offsetOptions) { %>
+        <label class="check"><input type="checkbox" name="offsets" value="<%= o.minutes %>"
+          <%= chosenOffsets.includes(o.minutes) ? 'checked' : '' %>> <%= o.label %></label>
+      <% } %>
+      <p class="hint">If it is already too late for every chosen time, one reminder is sent right away.</p>
+    </fieldset>
+
+    <div class="form-actions">
+      <button type="submit" class="primary"><%= isEdit ? 'Save changes' : 'Save appointment' %></button>
+      <a class="button" href="/">Back</a>
+    </div>
+  </form>
+</div>
+<script>
+  (function () {
+    var tzSel = document.querySelector('select[name=timezone]');
+    var ccHint = document.getElementById('ccHint');
+    var defaultCc = '<%= settings.default_country_code %>';
+    function updateCcHint() {
+      var opt = tzSel.options[tzSel.selectedIndex];
+      var cc = (opt && opt.getAttribute('data-cc')) || defaultCc;
+      ccHint.textContent = 'Local phone numbers (customer and person to meet) get country code +' + cc +
+        ' automatically (follows the appointment time zone below).';
+    }
+    tzSel.addEventListener('change', updateCcHint);
+  })();
+</script>
+<%- include('partials/footer') %>

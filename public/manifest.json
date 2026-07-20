@@ -1,0 +1,13 @@
+{
+  "name": "Appointment Secretary",
+  "short_name": "Secretary",
+  "description": "Book appointments and send automatic reminders",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f4f5fb",
+  "theme_color": "#1e1b4b",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

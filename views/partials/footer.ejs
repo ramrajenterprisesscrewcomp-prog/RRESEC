@@ -1,0 +1,70 @@
+</main>
+<% if (user) { %>
+<script>
+  (function () {
+    if (!('Notification' in window)) return;
+    var btn = document.getElementById('notifBtn');
+    var KEY = 'notifiedAppts';
+
+    if ('serviceWorker' in navigator && window.isSecureContext) {
+      navigator.serviceWorker.register('/sw.js').catch(function () {});
+    }
+
+    function show(title, body) {
+      try {
+        new Notification(title, { body: body, icon: '/icon-192.png' });
+      } catch (e) {
+        // Android requires notifications via a service worker
+        if (navigator.serviceWorker) {
+          navigator.serviceWorker.getRegistration().then(function (reg) {
+            if (reg) reg.showNotification(title, { body: body, icon: '/icon-192.png' });
+          });
+        }
+      }
+    }
+
+    function refreshBtn() {
+      if (btn) btn.textContent = Notification.permission === 'granted' ? '🔔 On' : '🔔 Enable alerts';
+    }
+
+    if (btn) {
+      btn.onclick = function () {
+        if (Notification.permission === 'granted') {
+          show('Alerts are on', 'You will get an alert 30 minutes before your appointments while the app is open.');
+          return;
+        }
+        if (!window.isSecureContext) {
+          alert('Alerts need a secure address. On this PC use http://localhost:3010 — on phones use https://' + location.hostname + ':3443');
+          return;
+        }
+        Notification.requestPermission().then(refreshBtn);
+      };
+    }
+
+    function poll() {
+      if (Notification.permission !== 'granted') return;
+      fetch('/api/notifications')
+        .then(function (r) { return r.json(); })
+        .then(function (list) {
+          var seen = {};
+          try { seen = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) {}
+          var cutoff = Date.now() - 2 * 24 * 3600 * 1000;
+          Object.keys(seen).forEach(function (k) { if (seen[k] < cutoff) delete seen[k]; });
+          list.forEach(function (n) {
+            if (seen[n.id]) return;
+            seen[n.id] = Date.now();
+            show('Upcoming appointment', n.customer + ' at ' + n.time);
+          });
+          localStorage.setItem(KEY, JSON.stringify(seen));
+        })
+        .catch(function () {});
+    }
+
+    refreshBtn();
+    poll();
+    setInterval(poll, 60000);
+  })();
+</script>
+<% } %>
+</body>
+</html>

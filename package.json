@@ -1,0 +1,19 @@
+{
+  "name": "rre-secretary",
+  "version": "1.0.0",
+  "description": "Appointment secretary app with email / WhatsApp / SMS reminders",
+  "main": "server.js",
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "nodemailer": "^9.0.3"
+  }
+}

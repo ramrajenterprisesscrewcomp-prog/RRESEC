@@ -1,0 +1,105 @@
+<%- include('partials/header') %>
+<div class="page-head">
+  <h1>Appointments</h1>
+  <a class="button primary" href="/appointments/new">+ New appointment</a>
+</div>
+
+<% if (!emailConfigured && user.role === 'admin') { %>
+  <div class="flash warn">Email sending is not set up yet, so reminders cannot go out.
+    <a href="/settings">Open Settings</a> and fill in the Email (SMTP) section.</div>
+<% } %>
+
+<div class="filters">
+  <% const scopeQ = scopeAll ? '&scope=all' : ''; %>
+  <a class="chip <%= filter === 'upcoming' ? 'on' : '' %>" href="/?filter=upcoming<%= scopeQ %>">Upcoming</a>
+  <a class="chip <%= filter === 'past' ? 'on' : '' %>" href="/?filter=past<%= scopeQ %>">Past</a>
+  <a class="chip <%= filter === 'all' ? 'on' : '' %>" href="/?filter=all<%= scopeQ %>">All</a>
+  <% if (user.role === 'admin') { %>
+    <span class="spacer"></span>
+    <a class="chip <%= !scopeAll ? 'on' : '' %>" href="/?filter=<%= filter %>">My appointments</a>
+    <a class="chip <%= scopeAll ? 'on' : '' %>" href="/?filter=<%= filter %>&scope=all">Everyone's</a>
+  <% } %>
+</div>
+
+<% if (appointments.length === 0) { %>
+  <div class="card empty">
+    <p>No appointments here yet.</p>
+    <p><a href="/appointments/new">Create the first one</a> — reminders are scheduled automatically.</p>
+  </div>
+<% } else { %>
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>When</th>
+      <th>Appointment</th>
+      <th>Contact</th>
+      <th>Reminders</th>
+      <% if (scopeAll) { %><th>Booked by</th><% } %>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+  <% for (const a of appointments) { %>
+    <tr class="<%= a.status === 'cancelled' ? 'cancelled' : '' %>">
+      <td>
+        <strong><%= fmtDate(a.start_ms) %></strong><br>
+        <%= fmtTime(a.start_ms) %>
+        <% if (a.timezone && a.timezone !== viewerTz) { %>
+          <br><span class="muted small-text"><%= wallTime(a.start_ms, a.timezone) %> in <%= a.timezone %></span>
+        <% } %>
+      </td>
+      <td>
+        <% if (a.title) { %><strong><%= a.title %></strong><br><% } %>
+        <strong><%= a.customer_name %></strong>
+        <span class="tag"><%= a.mode === 'online' ? '💻 Online' : '🤝 In-person' %></span>
+        <% if (a.meet_person || a.meet_person_phone) { %>
+          <br><span class="muted">👤 Meet: <%= [a.meet_person, a.meet_person_phone].filter(Boolean).join(' · ') %></span>
+        <% } %>
+        <% if (a.destination) { %><br><span class="muted">🧭 <%= a.destination %></span><% } %>
+        <% if (a.notes) { %><br><span class="muted"><%= a.notes %></span><% } %>
+      </td>
+      <td class="muted">
+        <% if (a.customer_phone) { %><%= a.customer_phone %><br><% } %>
+        <% if (a.customer_email) { %><%= a.customer_email %><% } %>
+      </td>
+      <td>
+        <% const ch = JSON.parse(a.channels || '[]'); %>
+        <% if (ch.includes('email')) { %><span class="tag">✉️ email</span><% } %>
+        <% if (ch.includes('whatsapp')) { %><span class="tag">🟢 WhatsApp</span><% } %>
+        <% if (ch.includes('sms')) { %><span class="tag">💬 SMS</span><% } %>
+        <br>
+        <% if (a.status === 'cancelled') { %>
+          <span class="muted">cancelled</span>
+        <% } else if (a.next_due_ms) { %>
+          <span class="muted">next: <%= fmtDateTime(a.next_due_ms) %></span>
+        <% } else if (a.sent_count > 0) { %>
+          <span class="muted"><%= a.sent_count %> sent</span>
+        <% } else { %>
+          <span class="muted">none pending</span>
+        <% } %>
+      </td>
+      <% if (scopeAll) { %><td class="muted"><%= a.owner_name %></td><% } %>
+      <td class="actions">
+        <a class="button small" target="_blank" title="Add to Google Calendar" href="<%= gcalUrl(a) %>">📅 GCal</a>
+        <a class="button small" title="Download for Outlook / Apple Calendar" href="/appointments/<%= a.id %>/ics">.ics</a>
+        <a class="button small" href="/appointments/<%= a.id %>/edit">Edit</a>
+        <% if (a.status === 'active') { %>
+          <form method="post" action="/appointments/<%= a.id %>/cancel" class="inline"
+                onsubmit="return confirm('Cancel this appointment? Reminders will stop.')">
+            <button class="button small danger" type="submit">Cancel</button>
+          </form>
+        <% } else { %>
+          <form method="post" action="/appointments/<%= a.id %>/delete" class="inline"
+                onsubmit="return confirm('Delete permanently?')">
+            <button class="button small danger" type="submit">Delete</button>
+          </form>
+        <% } %>
+      </td>
+    </tr>
+  <% } %>
+  </tbody>
+</table>
+</div>
+<% } %>
+<%- include('partials/footer') %>

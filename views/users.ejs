@@ -1,0 +1,32 @@
+<%- include('partials/header') %>
+<h1>Users</h1>
+<p class="hint">Anyone with the app link can create an account on the register page. Deactivate a user to block their login.</p>
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th></th></tr>
+  </thead>
+  <tbody>
+  <% for (const u of users) { %>
+    <tr>
+      <td><strong><%= u.name %></strong></td>
+      <td class="muted"><%= u.email %></td>
+      <td><%= u.role %></td>
+      <td><span class="tag <%= u.active ? 'ok' : 'bad' %>"><%= u.active ? 'active' : 'deactivated' %></span></td>
+      <td>
+        <% if (u.id !== user.id) { %>
+          <form method="post" action="/users/<%= u.id %>/toggle" class="inline">
+            <button class="button small <%= u.active ? 'danger' : '' %>" type="submit">
+              <%= u.active ? 'Deactivate' : 'Activate' %>
+            </button>
+          </form>
+        <% } else { %>
+          <span class="muted">you</span>
+        <% } %>
+      </td>
+    </tr>
+  <% } %>
+  </tbody>
+</table>
+</div>
+<%- include('partials/footer') %>

@@ -119,6 +119,12 @@ function getSettings() {
   const rows = db.prepare('SELECT key, value FROM settings').all();
   const out = { ...DEFAULT_SETTINGS };
   for (const r of rows) out[r.key] = r.value;
+  // Fall back to env vars for Gmail SMTP credentials when the settings table
+  // has none saved — on hosts where the database does not persist (e.g.
+  // Vercel's ephemeral /tmp DB), this keeps email working across resets
+  // without needing to re-enter it in Settings each time.
+  if (!out.smtp_user && process.env.GMAIL_SENDER) out.smtp_user = process.env.GMAIL_SENDER;
+  if (!out.smtp_pass && process.env.GMAIL_APP_PASSWORD) out.smtp_pass = process.env.GMAIL_APP_PASSWORD;
   return out;
 }
 
